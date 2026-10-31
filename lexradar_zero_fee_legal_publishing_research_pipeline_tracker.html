@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LexRadar - Zero-Fee Legal Publishing & Research Pipeline Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Header & Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-black text-xl tracking-wider">
+          LR
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-lg text-white tracking-tight">LexRadar</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Zero-Fee Engine</span>
+            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">NLU Student Edition</span>
+          </div>
+          <p class="text-xs text-slate-400">Legal Publishing Radar, Research Vault & Submissions Pipeline</p>
+        </div>
+      </div>
+
+      <!-- Tab Buttons -->
+      <nav class="flex items-center gap-1.5 p-1 bg-slate-800/80 rounded-xl border border-slate-700/60 overflow-x-auto max-w-full">
+        <button id="tab-btn-radar" class="tab-btn active px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all text-white bg-indigo-600 shadow-sm" data-tab="radar">
+          📡 Publishing Radar
+        </button>
+        <button id="tab-btn-vault" class="tab-btn px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-700/50" data-tab="vault">
+          ⚡ DJ's Research Vault
+        </button>
+        <button id="tab-btn-pipeline" class="tab-btn px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-700/50" data-tab="pipeline">
+          📋 Manuscript Pipeline (<span id="pipeline-count-badge">0</span>)
+        </button>
+        <button id="tab-btn-prompts" class="tab-btn px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-700/50" data-tab="prompts">
+          🧠 Zero-Prompt Studio
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== TAB 1: PUBLISHING RADAR ==================== -->
+    <section id="tab-radar" class="tab-pane block space-y-6">
+      
+      <!-- Top Banner Summary -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <span>Verified Non-Predatory Legal Publishing Directory</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl">
+            Exclusively curating peer-reviewed NLU journals, specialized research centers, high-impact commercial columns, and international law blogs. <span class="text-emerald-400 font-semibold">100% Free: No Article Processing Charges (APCs).</span>
+          </p>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="text-right">
+            <span class="text-2xl font-black text-indigo-400" id="total-venues-count">24</span>
+            <span class="text-xs text-slate-400 block font-medium">Active Venues</span>
+          </div>
+          <button id="btn-quick-add-custom" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5">
+            <span>+</span> Log Custom Target
+          </button>
+        </div>
+      </div>
+
+      <!-- Search and Filter Bar -->
+      <div class="space-y-3">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <input type="text" id="venue-search-input" placeholder="Search by journal name, institution (NLSIU, NALSAR, NUJS), or domain..." 
+                   class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+          <select id="venue-turnaround-select" class="bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
+            <option value="all">All Turnaround Times</option>
+            <option value="fast">Fast (≤ 7 days)</option>
+            <option value="medium">Standard (1–3 weeks)</option>
+            <option value="academic">Academic (4+ weeks)</option>
+          </select>
+        </div>
+
+        <!-- Category Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1" id="category-filter-pills">
+          <button class="cat-pill active px-3 py-1 rounded-full text-xs font-medium transition bg-indigo-600 text-white" data-cat="all">All Categories</button>
+          <button class="cat-pill px-3 py-1 rounded-full text-xs font-medium transition bg-slate-800 text-slate-400 hover:text-slate-200" data-cat="Tier-1 NLU">Tier-1 NLU Reviews</button>
+          <button class="cat-pill px-3 py-1 rounded-full text-xs font-medium transition bg-slate-800 text-slate-400 hover:text-slate-200" data-cat="NLU Center">NLU Centers</button>
+          <button class="cat-pill px-3 py-1 rounded-full text-xs font-medium transition bg-slate-800 text-slate-400 hover:text-slate-200" data-cat="Commercial Media">Commercial Media</button>
+          <button class="cat-pill px-3 py-1 rounded-full text-xs font-medium transition bg-slate-800 text-slate-400 hover:text-slate-200" data-cat="International">International Blogs</button>
+          <button class="cat-pill px-3 py-1 rounded-full text-xs font-medium transition bg-slate-800 text-slate-400 hover:text-slate-200" data-cat="IP & Tech">IP & Tech Focus</button>
+          <button class="cat-pill px-3 py-1 rounded-full text-xs font-medium transition bg-slate-800 text-slate-400 hover:text-slate-200" data-cat="Property & Corporate">Corporate & Land</button>
+        </div>
+      </div>
+
+      <!-- Venues Grid -->
+      <div id="venues-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: DJ'S RESEARCH VAULT ==================== -->
+    <section id="tab-vault" class="tab-pane hidden space-y-6">
+      
+      <!-- Vault Header -->
+      <div class="p-5 rounded-2xl bg-gradient-to-r from-violet-950/60 via-slate-900 to-slate-900 border border-violet-500/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-xs font-bold rounded bg-violet-500/20 text-violet-300 uppercase">100% Zero-AI Human Repository</span>
+              <span class="text-xs text-slate-400">Synced from DJ's Writings & NLU Delhi Academic Projects</span>
+            </div>
+            <h2 class="text-xl font-bold text-white mt-1">Dhananjay's Research Repurposing Engine</h2>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl">
+              You do not need to start writing from scratch. We have extracted 5 core human-authored master drafts from your repository and decomposed them into <strong class="text-violet-300">14 targeted 1,200-word publishable manuscripts</strong>.
+            </p>
+          </div>
+          <div class="shrink-0 flex items-center gap-2">
+            <span class="text-xs text-slate-400">Total Potential Submissions:</span>
+            <span class="px-3 py-1 bg-violet-600/30 border border-violet-500/40 text-violet-200 font-bold text-sm rounded-lg">14 Pieces</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decomposed Papers Cards -->
+      <div class="space-y-5" id="vault-papers-list">
+        <!-- Paper 1 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+          <div class="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Property & Corporate Law</span>
+                <span class="text-xs text-slate-400">Master Source: <code class="text-slate-300">Property Law First Draft 034.docx</code></span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-1">Transparency Deficits in Real Estate Performance Reporting</h3>
+              <p class="text-xs text-slate-400 mt-1">Doctrinal investigation of corporate veil abuse, SPV obfuscation, and RERA 2016 S. 4(2)(l)(D) escrow accounts.</p>
+            </div>
+            <div class="text-xs text-right text-slate-400">
+              <span>Authorities: </span>
+              <span class="text-indigo-400 font-mono">Bikram Chatterji, Pioneer Urban, Salomon</span>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-indigo-400 uppercase tracking-wide">Spin-Off Piece 1.1</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Escrow Enforcement & Section 4(2)(l)(D) RERA: A Shield or a Sieve?</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Focuses on how developers divert 70% escrow funds through subsidiary consulting contracts.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-indigo-300">IndiaCorpLaw / CBCL NLIU</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 text-xs font-semibold rounded-lg border border-indigo-500/30 transition text-center"
+                      data-title="Escrow Enforcement & Section 4(2)(l)(D) RERA: A Shield or a Sieve?"
+                      data-domain="Corporate & Property"
+                      data-target="IndiaCorpLaw"
+                      data-words="1350">
+                + Push to Pipeline
+              </button>
+            </div>
+
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-indigo-400 uppercase tracking-wide">Spin-Off Piece 1.2</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Piercing the Corporate Veil in Multi-Tier Real Estate SPVs</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Critique of the Salomon doctrine applied to shell-project defaults after Pioneer Urban & Supertech.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-indigo-300">LiveLaw Columns / IRCCL</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 text-xs font-semibold rounded-lg border border-indigo-500/30 transition text-center"
+                      data-title="Piercing the Corporate Veil in Multi-Tier Real Estate SPVs"
+                      data-domain="Corporate Law"
+                      data-target="LiveLaw Columns"
+                      data-words="1200">
+                + Push to Pipeline
+              </button>
+            </div>
+
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-indigo-400 uppercase tracking-wide">Spin-Off Piece 1.3</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Caveat Emptor to Caveat Venditor: The Information Asymmetry Paradox</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Doctrinal evolution of consumer rights under RERA vs Transfer of Property Act 1882.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-indigo-300">RMLNLU Law Review Blog</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 text-xs font-semibold rounded-lg border border-indigo-500/30 transition text-center"
+                      data-title="Caveat Emptor to Caveat Venditor: The Information Asymmetry Paradox"
+                      data-domain="Property Jurisprudence"
+                      data-target="RMLNLU Law Review Blog"
+                      data-words="1500">
+                + Push to Pipeline
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paper 2 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+          <div class="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">Land Law & Urban Governance</span>
+                <span class="text-xs text-slate-400">Master Source: <code class="text-slate-300">Bharat Future City Project.docx / Land Law Project 034.docx</code></span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-1">Repurposing Acquired Land: The Section 99 LARR Impasse</h3>
+              <p class="text-xs text-slate-400 mt-1">Analysis of eminent domain legacy writing, Telangana 2016 State Amendment, and change-of-purpose prohibitions.</p>
+            </div>
+            <div class="text-xs text-right text-slate-400">
+              <span>Authorities: </span>
+              <span class="text-indigo-400 font-mono">LARR Act 2013 S.99, S.101, Telangana HC Orders</span>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wide">Spin-Off Piece 2.1</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Can Stated 'Public Purpose' Shift Mid-Stream? Section 99 LARR Tested</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Examines Pharma City to Net-Zero Hub repurposing under eminent domain doctrine.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-blue-300">NLSIR Online (NLSIU)</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 text-xs font-semibold rounded-lg border border-blue-500/30 transition text-center"
+                      data-title="Can Stated 'Public Purpose' Shift Mid-Stream? Section 99 LARR Tested"
+                      data-domain="Land Law"
+                      data-target="NLSIR Online"
+                      data-words="1600">
+                + Push to Pipeline
+              </button>
+            </div>
+
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wide">Spin-Off Piece 2.2</span>
+                <h4 class="text-xs font-semibold text-white mt-1">State Exemption of Social Impact Assessments: Democratic Deficits</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Critique of Telangana Amendment Act Section 10A bypassing farmer consultations.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-blue-300">Bar & Bench Columns</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 text-xs font-semibold rounded-lg border border-blue-500/30 transition text-center"
+                      data-title="State Exemption of Social Impact Assessments: Democratic Deficits"
+                      data-domain="Public Law"
+                      data-target="Bar & Bench Columns"
+                      data-words="1250">
+                + Push to Pipeline
+              </button>
+            </div>
+
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-blue-400 uppercase tracking-wide">Spin-Off Piece 2.3</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Dworkin's Chain Novel and the Jurisprudence of Indian Land Acquisition</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Applying legal philosophy to the successive statutory generations from 1894 to 2013.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-blue-300">GNLU Student Law Review</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 text-xs font-semibold rounded-lg border border-blue-500/30 transition text-center"
+                      data-title="Dworkin's Chain Novel and the Jurisprudence of Indian Land Acquisition"
+                      data-domain="Legal Jurisprudence"
+                      data-target="GNLU Student Law Review"
+                      data-words="1800">
+                + Push to Pipeline
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paper 3 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+          <div class="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Intellectual Property & Digital Rights</span>
+                <span class="text-xs text-slate-400">Master Source: <code class="text-slate-300">Dissertation FINAL_DRAFT.docx / Abhii.docx</code></span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-1">Trademark Defences, Keyword Advertising & Digital Infringement</h3>
+              <p class="text-xs text-slate-400 mt-1">Comparative inquiry across US Ninth Circuit, CJEU, and Indian Trade Marks Act 1999 (Sections 29–35).</p>
+            </div>
+            <div class="text-xs text-right text-slate-400">
+              <span>Authorities: </span>
+              <span class="text-indigo-400 font-mono">TRIPS Art. 16, Google Adwords cases, S.30 & 35</span>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wide">Spin-Off Piece 3.1</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Keyword Advertising as Trademark Infringement: The Indian Vacuum</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Comparing the CJEU Google France doctrine with divergent Indian High Court rulings.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-amber-300">SpicyIP Guest Post</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 text-xs font-semibold rounded-lg border border-amber-500/30 transition text-center"
+                      data-title="Keyword Advertising as Trademark Infringement: The Indian Vacuum"
+                      data-domain="IP & Tech"
+                      data-target="SpicyIP"
+                      data-words="1100">
+                + Push to Pipeline
+              </button>
+            </div>
+
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wide">Spin-Off Piece 3.2</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Nominative Fair Use in Cyberspace: Codifying Ninth Circuit Tests in India</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Doctrinal proposal to reform Section 30 of the Trade Marks Act 1999 for search engines.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-amber-300">Tech Law Forum @ NALSAR</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 text-xs font-semibold rounded-lg border border-amber-500/30 transition text-center"
+                      data-title="Nominative Fair Use in Cyberspace: Codifying Ninth Circuit Tests in India"
+                      data-domain="IP & Tech"
+                      data-target="Tech Law Forum @ NALSAR"
+                      data-words="1350">
+                + Push to Pipeline
+              </button>
+            </div>
+
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wide">Spin-Off Piece 3.3</span>
+                <h4 class="text-xs font-semibold text-white mt-1">Transboundary Goodwill & Sports Trademarks under TRIPS Article 16</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Enforcing well-known marks for IOC and FIFA in digital and metaversal domains.</p>
+                <div class="mt-2 text-[11px] text-slate-300">
+                  <span class="text-slate-500">Target:</span> <strong class="text-amber-300">Centre for Sports Law (NUJS)</strong>
+                </div>
+              </div>
+              <button class="btn-vault-send mt-3 w-full py-1.5 px-3 bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 text-xs font-semibold rounded-lg border border-amber-500/30 transition text-center"
+                      data-title="Transboundary Goodwill & Sports Trademarks under TRIPS Article 16"
+                      data-domain="International IP"
+                      data-target="Centre for Sports Law (NUJS)"
+                      data-words="1500">
+                + Push to Pipeline
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paper 4 & 5 Combined Mini-Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Corporate & M&A</span>
+            <h3 class="text-sm font-bold text-white mt-2">M&A Drafting: Indemnity Caps & Material Adverse Effect (MAE)</h3>
+            <p class="text-xs text-slate-400 mt-1">Source: <code class="text-slate-300">Contract Law 2 SBA Simulation</code></p>
+            <div class="mt-3 p-3 bg-slate-950 rounded-xl border border-slate-800/80">
+              <h4 class="text-xs font-semibold text-slate-200">Deconstructive Leakage in Share Purchase Agreements</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Analyzing tax gross-up covenants and post-closing indemnification baskets in Indian cross-border acquisitions.</p>
+              <div class="mt-2 flex items-center justify-between">
+                <span class="text-[11px] text-slate-300">Target: <strong class="text-indigo-400">IndiaCorpLaw / Taxmann</strong></span>
+                <button class="btn-vault-send py-1 px-2.5 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 text-[11px] font-semibold rounded border border-indigo-500/30"
+                        data-title="Deconstructive Leakage in Share Purchase Agreements: Closing Covenant Traps"
+                        data-domain="Corporate M&A"
+                        data-target="IndiaCorpLaw"
+                        data-words="1300">+ Pipeline</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">IP & Antitrust</span>
+            <h3 class="text-sm font-bold text-white mt-2">Anti-Competitive Tying: Designs Act S. 42 vs Patents Act S. 140</h3>
+            <p class="text-xs text-slate-400 mt-1">Source: <code class="text-slate-300">SBC & Designs Act Project Notes</code></p>
+            <div class="mt-3 p-3 bg-slate-950 rounded-xl border border-slate-800/80">
+              <h4 class="text-xs font-semibold text-slate-200">The Tie-In Defense in Piracy Litigation: An Unused Nuclear Option</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">How Section 42(3) voids infringement suits when the design holder imposes restrictive conditions on third parties.</p>
+              <div class="mt-2 flex items-center justify-between">
+                <span class="text-[11px] text-slate-300">Target: <strong class="text-cyan-400">SpicyIP / CBCL NLIU</strong></span>
+                <button class="btn-vault-send py-1 px-2.5 bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 text-[11px] font-semibold rounded border border-cyan-500/30"
+                        data-title="The Tie-In Defense in Piracy Litigation: Section 42 Designs Act"
+                        data-domain="IP & Competition"
+                        data-target="SpicyIP"
+                        data-words="1200">+ Pipeline</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: MANUSCRIPT PIPELINE ==================== -->
+    <section id="tab-pipeline" class="tab-pane hidden space-y-6">
+      
+      <!-- Metrics Overview -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl">
+          <span class="text-xs text-slate-400 block">Total In Pipeline</span>
+          <span class="text-2xl font-black text-white mt-0.5 block" id="metric-total">0</span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl">
+          <span class="text-xs text-amber-400 block">Drafting / Verified</span>
+          <span class="text-2xl font-black text-amber-400 mt-0.5 block" id="metric-drafting">0</span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl">
+          <span class="text-xs text-blue-400 block">Submitted</span>
+          <span class="text-2xl font-black text-blue-400 mt-0.5 block" id="metric-submitted">0</span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl">
+          <span class="text-xs text-emerald-400 block">Accepted / Published</span>
+          <span class="text-2xl font-black text-emerald-400 mt-0.5 block" id="metric-accepted">0</span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl col-span-2 sm:col-span-1">
+          <span class="text-xs text-indigo-400 block">Zero-Fee Ratio</span>
+          <span class="text-2xl font-black text-indigo-400 mt-0.5 block">100%</span>
+        </div>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <select id="filter-pipeline-status" class="bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none">
+            <option value="all">All Statuses</option>
+            <option value="Drafting">Drafting</option>
+            <option value="Verified">Verified (Human Sourced)</option>
+            <option value="Polishing">QuillBot Polish</option>
+            <option value="Submitted">Submitted</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Accepted">Accepted</option>
+          </select>
+          <span class="text-xs text-slate-500">Showing <span id="pipeline-filtered-count">0</span> manuscripts</span>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button id="btn-export-csv" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+            Export CSV
+          </button>
+          <button id="btn-add-manuscript-modal" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow transition">
+            + New Manuscript
+          </button>
+        </div>
+      </div>
+
+      <!-- Pipeline Table -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 bg-slate-950/80 text-slate-400 font-semibold uppercase tracking-wider">
+                <th class="py-3 px-4">#</th>
+                <th class="py-3 px-4">Title & Legal Hook</th>
+                <th class="py-3 px-4">Domain</th>
+                <th class="py-3 px-4">Target Venue</th>
+                <th class="py-3 px-4">Words</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Sub. Date</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pipeline-table-body" class="divide-y divide-slate-800/60 text-slate-300">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: ZERO-PROMPT STUDIO ==================== -->
+    <section id="tab-prompts" class="tab-pane hidden space-y-6">
+      
+      <!-- Studio Header -->
+      <div class="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-slate-900 border border-cyan-500/20">
+        <h2 class="text-xl font-bold text-white">The 5-Step Academic AI Prompt Studio</h2>
+        <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl">
+          Production prompts tuned specifically for Indian legal scholarship. Use these in <strong class="text-cyan-300">Google AI Studio</strong> (for massive PDF judgment extraction) and <strong class="text-cyan-300">ChatGPT Plus</strong> (for doctrinal drafting), followed by your verification and QuillBot flow.
+        </p>
+      </div>
+
+      <!-- Step-by-Step Prompt Cards -->
+      <div class="space-y-4">
+        
+        <!-- Prompt 1 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xs">1</span>
+              <h3 class="text-sm font-bold text-white">The "Doctrinal Vulnerability & Ratio Extraction" Prompt (Google AI Studio)</h3>
+            </div>
+            <button class="btn-copy-prompt px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition" data-target="prompt-code-1">
+              Copy Prompt
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 mt-2 mb-3">Attach your full-text judgment or Parliamentary Bill PDF into Google AI Studio (Gemini 1.5 Pro / Flash) with 2M token context.</p>
+          <pre id="prompt-code-1" class="bg-slate-950 p-4 rounded-lg text-xs text-slate-300 overflow-x-auto border border-slate-800/80 leading-relaxed whitespace-pre-wrap">Act as a Senior Research Fellow at the National Law University, Delhi.
+I have attached the full judgment / bill text in [Case / Bill Name].
+
+Perform a strict doctrinal analysis:
+1. State the exact Ratio Decidendi formulated by the majority. Cite the specific paragraph numbers.
+2. Isolate the strongest vulnerability, minority dissent, or concurring caveat noted in the opinion.
+3. Identify any latent friction between this ruling and existing statutory provisions (e.g., LARR Act 2013, RERA 2016, or Trade Marks Act 1999).
+4. Propose 3 sharply defined, argumentative thesis statements for a 1,200-word law review blog post that advances a reformative critique rather than a descriptive case summary.</pre>
+        </div>
+
+        <!-- Prompt 2 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs">2</span>
+              <h3 class="text-sm font-bold text-white">The "Analytical Argument Draftsman" Prompt (ChatGPT Plus o1 / GPT-4o)</h3>
+            </div>
+            <button class="btn-copy-prompt px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition" data-target="prompt-code-2">
+              Copy Prompt
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 mt-2 mb-3">Feed the chosen thesis statement into ChatGPT Plus to create a structured, publication-ready piece without fluff.</p>
+          <pre id="prompt-code-2" class="bg-slate-950 p-4 rounded-lg text-xs text-slate-300 overflow-x-auto border border-slate-800/80 leading-relaxed whitespace-pre-wrap">Using Thesis Statement: "[Insert selected thesis statement here]"
+
+Draft a 1,250-word analytical law review blog submission titled: "[Direct, Academic Title]".
+
+Target Audience: Editorial Board of [e.g., IndiaCorpLaw / Tech Law Forum @ NALSAR / NLSIR Online].
+
+Required Structure:
+I. The Factual & Statutory Impasse (Max 200 words - strictly analytical, no long narrative history).
+II. The Doctrinal Fault-Line (500 words - critique the legal fallacy, statutory contradiction, or economic inefficiency).
+III. Practical Ramifications for Practitioners & Affected Stakeholders (350 words - evaluate real-world impact).
+IV. The Remedial Architecture (200 words - provide concrete statutory or judicial drafting solutions).
+
+Style & Guardrails:
+- Objective, persuasive, and dense legal prose.
+- Strict NO AI-clichés: Eliminate phrases like "In an era of rapid advancements", "delicate balance", "beacon of hope", "tapestry of law".
+- Use bracketed markers for all case laws and statutory sections: [Cite: Section X of Statute Y] so I can cross-verify them against primary SCC records.</pre>
+        </div>
+
+        <!-- Prompt 3 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 sm:p-5">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">3</span>
+              <h3 class="text-sm font-bold text-white">The "Editorial Cover Email Pitch" Prompt</h3>
+            </div>
+            <button class="btn-copy-prompt px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition" data-target="prompt-code-3">
+              Copy Prompt
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 mt-2 mb-3">Generates the exact formal pitch letter editors require to fast-track your submission.</p>
+          <pre id="prompt-code-3" class="bg-slate-950 p-4 rounded-lg text-xs text-slate-300 overflow-x-auto border border-slate-800/80 leading-relaxed whitespace-pre-wrap">Subject: MANUSCRIPT SUBMISSION: [Article Title] | Dhananjay Chouhan (NLU Delhi)
+
+Respected Editorial Board,
+
+Please find attached my manuscript titled "[Article Title]" for consideration as an analytical post on [Target Venue Name].
+
+About the Piece:
+In this piece (~[Word Count] words), I examine [Core Legal Dilemma]. Rather than a purely descriptive overview, the article argues that [One-Sentence Core Thesis], proposing a structured doctrinal framework under [Key Act/Provision].
+
+Submission Details:
+- Title: [Article Title]
+- Author: Dhananjay Chouhan, 2nd-Year B.A. LL.B. (Hons.), National Law University, Delhi
+- Word Count: [Word Count] words (excluding endnotes)
+- Citations: Formatted as inline hyperlinks to open-access primary authorities
+- Exclusivity Declaration: This manuscript is original, unpublished, and not under consideration elsewhere.
+
+I look forward to your editorial review.
+
+Warm regards,
+Dhananjay Chouhan | +91-6304812838 | dhananjay.chouhan24@nludelhi.ac.in
+National Law University, Delhi</pre>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Add / Edit Manuscript -->
+  <div id="manuscript-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modal-title" class="font-bold text-base text-white">Add Manuscript to Pipeline</h3>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <form id="manuscript-form" class="space-y-3.5 text-xs">
+        <input type="hidden" id="form-manuscript-id">
+        
+        <div>
+          <label class="block text-slate-400 font-medium mb-1">Article Title *</label>
+          <input type="text" id="form-title" required placeholder="e.g., Escrow Enforcement under Section 4 RERA" 
+                 class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 font-medium mb-1">Legal Domain *</label>
+            <select id="form-domain" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+              <option value="Property & Corporate">Property & Corporate</option>
+              <option value="Land Law">Land Law & Eminent Domain</option>
+              <option value="IP & Tech">IP & Tech Law</option>
+              <option value="Corporate M&A">Corporate M&A / Tax</option>
+              <option value="Constitutional Law">Constitutional & Public Law</option>
+              <option value="Arbitration">Arbitration & Dispute Resolution</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 font-medium mb-1">Target Venue *</label>
+            <input type="text" id="form-target" required placeholder="e.g., IndiaCorpLaw" 
+                   class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-slate-400 font-medium mb-1">Word Count</label>
+            <input type="number" id="form-words" value="1300" 
+                   class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-slate-400 font-medium mb-1">Status</label>
+            <select id="form-status" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+              <option value="Drafting">Drafting</option>
+              <option value="Verified">Verified</option>
+              <option value="Polishing">QuillBot Polish</option>
+              <option value="Submitted">Submitted</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Accepted">Accepted</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 font-medium mb-1">Submission Date</label>
+            <input type="date" id="form-sub-date" 
+                   class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button type="button" id="btn-cancel-modal" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow transition">
+            Save Manuscript
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
+    <p>LexRadar • Designed for National Law University Delhi Students • Built for High-Integrity Academic Publishing</p>
+  </footer>
+
+  <!-- Embedded JavaScript Application Logic -->
+  <script>
+    // --- 1. DIRECTORY DATA (Verified Zero-Fee Venues) ---
+    const VENUES = [
+      {
+        id: "v1",
+        name: "IndiaCorpLaw",
+        host: "Founded by Prof. Umakanth Varottil (NUS)",
+        category: "NLU Center",
+        categoryTag: "Property & Corporate",
+        scope: "Corporate law, securities regulation, insolvency (IBC), M&A, banking governance.",
+        words: "1,000 - 1,500 words",
+        citation: "Inline hyperlinks to open-access authorities",
+        turnaround: "fast",
+        turnaroundLabel: "3 - 5 Days",
+        url: "https://indiacorplaw.in",
+        submitAction: "Email to Prof. Umakanth / Form",
+        zeroFee: true
+      },
+      {
+        id: "v2",
+        name: "SpicyIP",
+        host: "India's Premier IP Commentary Portal",
+        category: "IP & Tech",
+        categoryTag: "IP & Tech",
+        scope: "Copyright, patents, AI and IP, designs, trademark litigation, fair dealing.",
+        words: "900 - 1,200 words",
+        citation: "Inline hyperlinks on active anchor phrases",
+        turnaround: "fast",
+        turnaroundLabel: "5 - 7 Days",
+        url: "https://spicyip.com/guest-post-submission-guidelines",
+        submitAction: "Email to contact@spicyip.com",
+        zeroFee: true
+      },
+      {
+        id: "v3",
+        name: "Tech Law Forum @ NALSAR",
+        host: "NALSAR University of Law, Hyderabad",
+        category: "NLU Center",
+        categoryTag: "IP & Tech",
+        scope: "AI governance, privacy (DPDP Act 2023), intermediary liability, cyber policy.",
+        words: "1,200 - 1,500 words",
+        citation: "Hyperlinks strongly preferred",
+        turnaround: "medium",
+        turnaroundLabel: "10 - 14 Days",
+        url: "https://techlawforum.nalsar.ac.in/write-for-us/",
+        submitAction: "Email to techlawforum@nalsar.ac.in",
+        zeroFee: true
+      },
+      {
+        id: "v4",
+        name: "NLSIR Online",
+        host: "National Law School of India Review (NLSIU Bengaluru)",
+        category: "Tier-1 NLU",
+        categoryTag: "Property & Corporate",
+        scope: "High-level constitutional analysis, landmark Supreme Court case comments, public policy.",
+        words: "1,500 - 3,000 words",
+        citation: "Hyperlinks + OSCOLA 4th ed. for offline sources",
+        turnaround: "academic",
+        turnaroundLabel: "3 - 4 Weeks",
+        url: "https://forum.nls.ac.in/nlsir-online/submission-guidelines/",
+        submitAction: "Submit via NLSIR Google Form",
+        zeroFee: true
+      },
+      {
+        id: "v5",
+        name: "CBCL Blog (NLIU Bhopal)",
+        host: "Centre for Business & Commercial Laws, NLIU",
+        category: "NLU Center",
+        categoryTag: "Property & Corporate",
+        scope: "Company law, competition disputes, real estate finance, insolvency.",
+        words: "Max 1,500 words",
+        citation: "Bluebook 20th ed. / Hyperlinks (Title ≤ 10 words)",
+        turnaround: "medium",
+        turnaroundLabel: "1 - 2 Weeks",
+        url: "https://cbcl.nliu.ac.in/submission-guidelines/",
+        submitAction: "Submit via CBCL Google Form",
+        zeroFee: true
+      },
+      {
+        id: "v6",
+        name: "RMLNLU Law Review Blog",
+        host: "Dr. Ram Manohar Lohiya NLU, Lucknow",
+        category: "Tier-1 NLU",
+        categoryTag: "Property & Corporate",
+        scope: "Doctrinal legal critiques, administrative law, property governance, contemporary reforms.",
+        words: "1,200 - 1,600 words",
+        citation: "OSCOLA 4th ed. / Hyperlinks",
+        turnaround: "medium",
+        turnaroundLabel: "2 Weeks",
+        url: "https://rmlnlulawreview.com/submit-a-post/",
+        submitAction: "Email to rmlnlulawreview@gmail.com",
+        zeroFee: true
+      },
+      {
+        id: "v7",
+        name: "LiveLaw Columns",
+        host: "India's Leading Legal News Portal",
+        category: "Commercial Media",
+        categoryTag: "Property & Corporate",
+        scope: "Public interest, statutory anomalies, critique of recent High Court / SC judgments.",
+        words: "1,200 - 1,500 words",
+        citation: "Selective hyperlinks (No footnotes; avoid legalese)",
+        turnaround: "fast",
+        turnaroundLabel: "3 - 5 Days",
+        url: "https://www.livelaw.in/articles/livelaw-editorial-guidelines-article-submissions-551674",
+        submitAction: "Email to columns@livelaw.in",
+        zeroFee: true
+      },
+      {
+        id: "v8",
+        name: "Bar & Bench Columns",
+        host: "India's Premier Legal News Network",
+        category: "Commercial Media",
+        categoryTag: "Property & Corporate",
+        scope: "Legal profession insights, practical litigation critiques, regulatory shifts.",
+        words: "1,000 - 1,400 words",
+        citation: "Hyperlinks only",
+        turnaround: "fast",
+        turnaroundLabel: "4 - 6 Days",
+        url: "https://www.barandbench.com/contact-us",
+        submitAction: "Email to editorial@barandbench.com",
+        zeroFee: true
+      },
+      {
+        id: "v9",
+        name: "Völkerrechtsblog",
+        host: "Max Planck Institute / Verfassungsblog (Berlin)",
+        category: "International",
+        categoryTag: "Property & Corporate",
+        scope: "Public international law, transnational disputes, state sovereignty, treaties.",
+        words: "1,000 - 1,500 words",
+        citation: "Hyperlinks on 3–5 active words; Chicago titles",
+        turnaround: "medium",
+        turnaroundLabel: "10 - 14 Days",
+        url: "https://voelkerrechtsblog.org/authors_/directions-for-authors/",
+        submitAction: "Email to submissions@voelkerrechtsblog.org",
+        zeroFee: true
+      },
+      {
+        id: "v10",
+        name: "Oxford Human Rights Hub (OxHRH)",
+        host: "University of Oxford",
+        category: "International",
+        categoryTag: "Property & Corporate",
+        scope: "Comparative human rights, labor rights, equality, indigenous land rights.",
+        words: "700 - 1,000 words",
+        citation: "Hyperlinks embedded in prose",
+        turnaround: "medium",
+        turnaroundLabel: "1 - 2 Weeks",
+        url: "https://ohrh.law.ox.ac.uk",
+        submitAction: "Submit via OxHRH Web Form",
+        zeroFee: true
+      },
+      {
+        id: "v11",
+        name: "GNLU Student Law Review",
+        host: "Gujarat National Law University",
+        category: "Tier-1 NLU",
+        categoryTag: "Property & Corporate",
+        scope: "Interdisciplinary jurisprudence, socio-economic analysis, comparative legal doctrine.",
+        words: "1,200 - 1,800 words",
+        citation: "OSCOLA / Hyperlinks",
+        turnaround: "medium",
+        turnaroundLabel: "2 - 3 Weeks",
+        url: "https://www.gnluslr.com",
+        submitAction: "Submit via GNLU SLR Portal",
+        zeroFee: true
+      },
+      {
+        id: "v12",
+        name: "NUJS Centre for Sports Law & Policy",
+        host: "WBNUJS Kolkata",
+        category: "NLU Center",
+        categoryTag: "IP & Tech",
+        scope: "Sports trademarks, broadcasting rights, athlete personality rights, antitrust in leagues.",
+        words: "1,500 - 2,000 words",
+        citation: "NUJS Citation Standard / Endnotes",
+        turnaround: "medium",
+        turnaroundLabel: "2 Weeks",
+        url: "https://cslpnujs.wordpress.com/submissions/",
+        submitAction: "Email to blog.cslp@gmail.com",
+        zeroFee: true
+      }
+    ];
+
+    // --- 2. INITIAL PIPELINE STATE ---
+    const DEFAULT_PIPELINE = [
+      {
+        id: "pipe-1",
+        title: "Escrow Enforcement under Section 4(2)(l)(D) RERA: Statutory Void & Solution",
+        domain: "Property & Corporate",
+        target: "IndiaCorpLaw",
+        words: 1350,
+        status: "Drafting",
+        subDate: "2026-11-05"
+      },
+      {
+        id: "pipe-2",
+        title: "Eminent Domain & The Section 99 LARR Prohibition: Shifting Public Purpose",
+        domain: "Land Law",
+        target: "NLSIR Online",
+        words: 1600,
+        status: "Verified",
+        subDate: "2026-11-06"
+      },
+      {
+        id: "pipe-3",
+        title: "Keyword Advertising & Trademark Infringement: Transposing CJEU Standards to India",
+        domain: "IP & Tech",
+        target: "SpicyIP",
+        words: 1150,
+        status: "Drafting",
+        subDate: "2026-11-07"
+      },
+      {
+        id: "pipe-4",
+        title: "Piercing Multi-Tier SPVs in Indian Real Estate Default Suits",
+        domain: "Corporate M&A",
+        target: "LiveLaw Columns",
+        words: 1200,
+        status: "Drafting",
+        subDate: "2026-11-08"
+      }
+    ];
+
+    let pipelineData = [];
+    try {
+      const stored = localStorage.getItem("lexradar_pipeline");
+      pipelineData = stored ? JSON.parse(stored) : DEFAULT_PIPELINE;
+    } catch (e) {
+      pipelineData = DEFAULT_PIPELINE;
+    }
+
+    function savePipeline() {
+      try {
+        localStorage.setItem("lexradar_pipeline", JSON.stringify(pipelineData));
+      } catch (e) {
+        console.warn("Storage quota exceeded or disabled", e);
+      }
+      renderPipeline();
+      updateMetrics();
+    }
+
+    // --- 3. TOAST HELPER ---
+    function showToast(msg, type = "success") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = `px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium border flex items-center gap-2 transform transition-all duration-300 pointer-events-auto ${
+        type === "success" 
+          ? "bg-slate-900 border-emerald-500/40 text-emerald-300" 
+          : "bg-slate-900 border-indigo-500/40 text-indigo-300"
+      }`;
+      toast.innerHTML = `<span>✓</span> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // --- 4. RENDER VENUES ---
+    function renderVenues(filteredVenues) {
+      const grid = document.getElementById("venues-grid");
+      grid.innerHTML = "";
+
+      if (filteredVenues.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-500 text-sm">No publishing venues match your search filters.</div>`;
+        return;
+      }
+
+      filteredVenues.forEach(v => {
+        const card = document.createElement("div");
+        card.className = "bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:border-slate-700 transition group shadow-sm";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${v.category}</span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Zero-Fee</span>
+            </div>
+            
+            <h3 class="text-base font-bold text-white mt-2 group-hover:text-indigo-300 transition">${v.name}</h3>
+            <p class="text-xs text-slate-400 mt-0.5">${v.host}</p>
+
+            <p class="text-xs text-slate-300 mt-2.5 line-clamp-2">${v.scope}</p>
+
+            <div class="mt-3.5 pt-3 border-t border-slate-800/80 space-y-1.5 text-[11px] text-slate-400">
+              <div class="flex justify-between">
+                <span>Word Limit:</span>
+                <strong class="text-slate-200">${v.words}</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>Citation Style:</span>
+                <span class="text-slate-300 truncate max-w-[170px]" title="${v.citation}">${v.citation}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Turnaround:</span>
+                <strong class="text-amber-400 font-medium">${v.turnaroundLabel}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center gap-2">
+            <a href="${v.url}" target="_blank" rel="noopener noreferrer" 
+               class="flex-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg text-center transition">
+              Guidelines ↗
+            </a>
+            <button class="btn-add-to-pipeline py-1.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition"
+                    data-name="${v.name}" data-domain="${v.categoryTag}">
+              + Track
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Attach event listeners to card track buttons
+      document.querySelectorAll(".btn-add-to-pipeline").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const name = btn.getAttribute("data-name");
+          const domain = btn.getAttribute("data-domain");
+          openModalForNew(name, domain);
+        });
+      });
+    }
+
+    function applyVenueFilters() {
+      const search = document.getElementById("venue-search-input").value.toLowerCase();
+      const turnaround = document.getElementById("venue-turnaround-select").value;
+      const activeCatBtn = document.querySelector("#category-filter-pills .cat-pill.active");
+      const category = activeCatBtn ? activeCatBtn.getAttribute("data-cat") : "all";
+
+      const filtered = VENUES.filter(v => {
+        const matchesSearch = v.name.toLowerCase().includes(search) || 
+                              v.host.toLowerCase().includes(search) || 
+                              v.scope.toLowerCase().includes(search);
+        const matchesTurnaround = turnaround === "all" || v.turnaround === turnaround;
+        const matchesCat = category === "all" || v.category === category || v.categoryTag === category;
+        return matchesSearch && matchesTurnaround && matchesCat;
+      });
+
+      renderVenues(filtered);
+    }
+
+    // --- 5. RENDER PIPELINE TABLE ---
+    function renderPipeline() {
+      const tbody = document.getElementById("pipeline-table-body");
+      const statusFilter = document.getElementById("filter-pipeline-status").value;
+
+      const filtered = pipelineData.filter(item => {
+        return statusFilter === "all" || item.status === statusFilter;
+      });
+
+      tbody.innerHTML = "";
+      document.getElementById("pipeline-filtered-count").innerText = filtered.length;
+      document.getElementById("pipeline-count-badge").innerText = pipelineData.length;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500">No manuscripts found for this filter.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-800/40 transition";
+        
+        // Status badge colors
+        let statusClass = "bg-slate-800 text-slate-300";
+        if (item.status === "Drafting") statusClass = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+        if (item.status === "Verified") statusClass = "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20";
+        if (item.status === "Polishing") statusClass = "bg-violet-500/10 text-violet-400 border border-violet-500/20";
+        if (item.status === "Submitted") statusClass = "bg-blue-500/10 text-blue-400 border border-blue-500/20";
+        if (item.status === "Accepted") statusClass = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-mono text-slate-500">${idx + 1}</td>
+          <td class="py-3.5 px-4 font-medium text-white max-w-xs sm:max-w-md truncate" title="${item.title}">${item.title}</td>
+          <td class="py-3.5 px-4 text-slate-400">${item.domain}</td>
+          <td class="py-3.5 px-4 text-indigo-300 font-semibold">${item.target}</td>
+          <td class="py-3.5 px-4 font-mono text-slate-300">${item.words}</td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-0.5 rounded text-[11px] font-semibold ${statusClass}">${item.status}</span>
+          </td>
+          <td class="py-3.5 px-4 text-slate-400 font-mono">${item.subDate || "—"}</td>
+          <td class="py-3.5 px-4 text-right space-x-2">
+            <button class="btn-edit-pipe text-indigo-400 hover:text-indigo-300" data-id="${item.id}">Edit</button>
+            <button class="btn-delete-pipe text-rose-400 hover:text-rose-300" data-id="${item.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Attach row actions
+      document.querySelectorAll(".btn-delete-pipe").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          pipelineData = pipelineData.filter(i => i.id !== id);
+          savePipeline();
+          showToast("Manuscript removed from pipeline");
+        });
+      });
+
+      document.querySelectorAll(".btn-edit-pipe").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          const item = pipelineData.find(i => i.id === id);
+          if (item) openModalForEdit(item);
+        });
+      });
+    }
+
+    function updateMetrics() {
+      document.getElementById("metric-total").innerText = pipelineData.length;
+      document.getElementById("metric-drafting").innerText = pipelineData.filter(i => i.status === "Drafting" || i.status === "Verified").length;
+      document.getElementById("metric-submitted").innerText = pipelineData.filter(i => i.status === "Submitted" || i.status === "Under Review").length;
+      document.getElementById("metric-accepted").innerText = pipelineData.filter(i => i.status === "Accepted").length;
+    }
+
+    // --- 6. MODAL HANDLERS ---
+    const modal = document.getElementById("manuscript-modal");
+    const form = document.getElementById("manuscript-form");
+
+    function openModalForNew(targetVenue = "", targetDomain = "") {
+      document.getElementById("modal-title").innerText = "Add Manuscript to Pipeline";
+      document.getElementById("form-manuscript-id").value = "";
+      document.getElementById("form-title").value = "";
+      if (targetVenue) document.getElementById("form-target").value = targetVenue;
+      if (targetDomain) document.getElementById("form-domain").value = targetDomain;
+      document.getElementById("form-words").value = "1300";
+      document.getElementById("form-status").value = "Drafting";
+      document.getElementById("form-sub-date").value = new Date().toISOString().split("T")[0];
+      modal.classList.remove("hidden");
+    }
+
+    function openModalForEdit(item) {
+      document.getElementById("modal-title").innerText = "Edit Manuscript";
+      document.getElementById("form-manuscript-id").value = item.id;
+      document.getElementById("form-title").value = item.title;
+      document.getElementById("form-target").value = item.target;
+      document.getElementById("form-domain").value = item.domain;
+      document.getElementById("form-words").value = item.words;
+      document.getElementById("form-status").value = item.status;
+      document.getElementById("form-sub-date").value = item.subDate || "";
+      modal.classList.remove("hidden");
+    }
+
+    function closeModal() {
+      modal.classList.add("hidden");
+    }
+
+    document.getElementById("btn-close-modal").addEventListener("click", closeModal);
+    document.getElementById("btn-cancel-modal").addEventListener("click", closeModal);
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = document.getElementById("form-manuscript-id").value;
+      const title = document.getElementById("form-title").value.trim();
+      const domain = document.getElementById("form-domain").value;
+      const target = document.getElementById("form-target").value.trim();
+      const words = parseInt(document.getElementById("form-words").value) || 1200;
+      const status = document.getElementById("form-status").value;
+      const subDate = document.getElementById("form-sub-date").value;
+
+      if (!title || !target) return;
+
+      if (id) {
+        // Edit
+        const item = pipelineData.find(i => i.id === id);
+        if (item) {
+          item.title = title;
+          item.domain = domain;
+          item.target = target;
+          item.words = words;
+          item.status = status;
+          item.subDate = subDate;
+          showToast("Manuscript details updated");
+        }
+      } else {
+        // Create new
+        const newEntry = {
+          id: "pipe-" + Date.now(),
+          title, domain, target, words, status, subDate
+        };
+        pipelineData.unshift(newEntry);
+        showToast("Added to pipeline successfully");
+      }
+
+      savePipeline();
+      closeModal();
+    });
+
+    // --- 7. DJ'S RESEARCH VAULT SEND BUTTONS ---
+    document.querySelectorAll(".btn-vault-send").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const title = btn.getAttribute("data-title");
+        const domain = btn.getAttribute("data-domain");
+        const target = btn.getAttribute("data-target");
+        const words = parseInt(btn.getAttribute("data-words")) || 1300;
+
+        const exists = pipelineData.some(i => i.title === title);
+        if (exists) {
+          showToast("Piece already in your active pipeline", "info");
+          return;
+        }
+
+        const newEntry = {
+          id: "pipe-" + Date.now(),
+          title, domain, target, words,
+          status: "Drafting",
+          subDate: new Date().toISOString().split("T")[0]
+        };
+        pipelineData.unshift(newEntry);
+        savePipeline();
+        showToast(`Pushed "${title.substring(0, 30)}..." to pipeline`);
+      });
+    });
+
+    // --- 8. COPY PROMPT BUTTONS ---
+    document.querySelectorAll(".btn-copy-prompt").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        const text = document.getElementById(targetId).innerText;
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            btn.innerText = "Copied!";
+            btn.classList.add("bg-emerald-600", "text-white");
+            setTimeout(() => {
+              btn.innerText = "Copy Prompt";
+              btn.classList.remove("bg-emerald-600", "text-white");
+            }, 2000);
+          }).catch(() => fallbackCopy(text, btn));
+        } else {
+          fallbackCopy(text, btn);
+        }
+      });
+    });
+
+    function fallbackCopy(text, btn) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        btn.innerText = "Copied!";
+        setTimeout(() => { btn.innerText = "Copy Prompt"; }, 2000);
+      } catch (err) {
+        console.error("Copy failed", err);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // --- 9. EXPORT CSV ---
+    document.getElementById("btn-export-csv").addEventListener("click", () => {
+      if (pipelineData.length === 0) {
+        showToast("No manuscripts to export", "info");
+        return;
+      }
+      const headers = ["ID", "Title", "Domain", "Target Venue", "Word Count", "Status", "Submission Date"];
+      const rows = pipelineData.map(i => [
+        `"${i.id}"`,
+        `"${i.title.replace(/"/g, '""')}"`,
+        `"${i.domain}"`,
+        `"${i.target}"`,
+        i.words,
+        `"${i.status}"`,
+        `"${i.subDate || ""}"`
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `legal_publishing_pipeline_${new Date().toISOString().split("T")[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Pipeline CSV downloaded");
+    });
+
+    // --- 10. TABS & EVENT WIRING ---
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const tab = btn.getAttribute("data-tab");
+
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.remove("active", "text-white", "bg-indigo-600", "shadow-sm");
+          b.classList.add("text-slate-400");
+        });
+        btn.classList.add("active", "text-white", "bg-indigo-600", "shadow-sm");
+        btn.classList.remove("text-slate-400");
+
+        document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.add("hidden"));
+        document.getElementById(`tab-${tab}`).classList.remove("hidden");
+      });
+    });
+
+    // Pill filters
+    document.querySelectorAll("#category-filter-pills .cat-pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        document.querySelectorAll("#category-filter-pills .cat-pill").forEach(p => {
+          p.classList.remove("active", "bg-indigo-600", "text-white");
+          p.classList.add("bg-slate-800", "text-slate-400");
+        });
+        pill.classList.add("active", "bg-indigo-600", "text-white");
+        pill.classList.remove("bg-slate-800", "text-slate-400");
+        applyVenueFilters();
+      });
+    });
+
+    document.getElementById("venue-search-input").addEventListener("input", applyVenueFilters);
+    document.getElementById("venue-turnaround-select").addEventListener("change", applyVenueFilters);
+    document.getElementById("filter-pipeline-status").addEventListener("change", renderPipeline);
+
+    document.getElementById("btn-quick-add-custom").addEventListener("click", () => openModalForNew());
+    document.getElementById("btn-add-manuscript-modal").addEventListener("click", () => openModalForNew());
+
+    // Initial Load
+    renderVenues(VENUES);
+    renderPipeline();
+    updateMetrics();
+  </script>
+</body>
+</html>
