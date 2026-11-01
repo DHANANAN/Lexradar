@@ -19,7 +19,7 @@ Reviewed 1 November 2026. Running registry: `server/sources.js`; venue records: 
 
 ## Evidence rules
 
-New leads contain a title, URL, summary, source, and fetch time. Global search requires grounding references. If the provider returns narrative rather than parseable JSON, the source references become explicitly unverified reading leads. AI-extracted fee/deadline claims remain unconfirmed until a person checks the original publisher. New publisher-index entries keep both fees Unknown, no verified deadline, and no checked date.
+New leads contain a title, URL, summary, source, and fetch time. Global search requires grounding references. If the provider returns narrative rather than parseable JSON, a short formatting pass structures the retrieved findings. If that fails, the grounding references become explicitly unverified reading leads. AI-extracted fee/deadline claims remain unconfirmed until a person checks the original publisher. New publisher-index entries keep both fees Unknown, no verified deadline, and no checked date.
 
 Open access does not imply free publication. Free submission does not imply free publication. A DOI does not establish legitimacy, accreditation, indexing, an open call, or acceptance. Deadlines need a year, closing time, and timezone from the source. Review times must be attributed rather than promised.
 
