@@ -26,6 +26,7 @@ STORM's [README](https://github.com/stanford-oval/storm/blob/main/README.md) des
 ```text
 GEMINI_API_KEY=your-server-key
 GEMINI_MODEL=gemini-2.5-flash
+GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
 SESSION_SECRET=your-random-server-signing-secret
 OPENALEX_API_KEY=optional
 CROSSREF_MAILTO=optional
@@ -45,3 +46,5 @@ The Consensus-style literature finder uses real OpenAlex/Crossref records and av
 Profiles and preferences are stored with the local workspace and backed up. They are not Firebase accounts or a multi-user cloud identity service.
 
 Server sessions are signed, HttpOnly and SameSite. Usage guards are per function instance, so provider-side quotas remain the durable billing cap. No Firebase project or paid backend plan was provisioned for these changes.
+
+Provider overloads (HTTP 500/502/503/504) receive a bounded retry and a lighter-model fallback inside one timeout budget. Quota and invalid-key errors are not retried as overloads. Temporary provider failure is reported distinctly from configuration failure.
