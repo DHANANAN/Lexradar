@@ -30,7 +30,10 @@ export const projectSchema = z.object({
 export type Project = z.infer<typeof projectSchema>;
 export const taskSchema = z.object({ id: z.string(), title: z.string().min(1), projectId: z.string(), due: day, done: z.boolean() });
 export type Task = z.infer<typeof taskSchema>;
+export const defaultProfile={displayName:'',role:'',institution:'',orcid:'',interests:'',citation:'Bluebook',writingTone:'Academic',language:'English',targetWords:3000};
+const profileSchema=z.object({displayName:z.string().max(150),role:z.string().max(150),institution:z.string().max(150),orcid:z.string().max(150),interests:z.string().max(500),citation:z.string(),writingTone:z.string(),language:z.string(),targetWords:z.number().int().min(300).max(30000)});
 export const stateSchema = z.object({
+  profile:profileSchema.default(defaultProfile),
   schema: z.literal(1), projects: z.array(projectSchema), venues: z.array(venueSchema), tasks: z.array(taskSchema),
   settings: z.object({ goal: z.number().int().min(1).max(1000), auraUrl: z.string(), editorUrl: z.string() })
 });

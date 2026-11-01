@@ -1,9 +1,9 @@
 import { load } from 'cheerio';
 import { XMLParser } from 'fast-xml-parser';
 import robotsParser from 'robots-parser';
-import { timingSafeEqual } from 'node:crypto';
 import { sources } from './sources.js';
-import { scholarlySearch, paperEdges } from './scholarly.js';
+import { scholarlySearch, paperEdges, zoteroLibrary } from './scholarly.js';
+import {issueSession,readSession,sessionCookie,allowRequest} from './session.js';
 
 const cache = new Map();
 const agent = 'LexRadarBot';
@@ -59,11 +59,10 @@ export async function discover(sourceId) {
   const value = { calls: parseCalls(body, source), source, fetchedAt: new Date().toISOString() };
   cache.set(sourceId, { time: Date.now(), value }); return value;
 }
-export function authorized(token, expected) {
-  if (!expected || typeof token !== 'string') return false;
-  const a = Buffer.from(token), b = Buffer.from(expected); return a.length === b.length && timingSafeEqual(a,b);
-}
 const tasks = {
+  ping:'Reply with exactly: Research connection ready.',
+  format:'Format the supplied text into the document type and citation style from the brief. Preserve facts, quotations, citations and qualifications. Use clear headings and a source list. Flag missing bibliographic details with [VERIFY]. Do not invent authors, case citations, page numbers or findings.',
+  evidence:'Answer the research question using only the supplied paper metadata and available abstracts. Identify evidence, disagreements, methods, limitations and unanswered questions. Cite exact supplied URLs. Distinguish evidence from interpretation. Metadata alone cannot establish findings: do not infer conclusions from titles or citation counts. Never invent consensus percentages or claim full-text review.',
   brainstorm: 'Generate 5 distinct, feasible research ideas on the supplied topic, considering doctrinal, comparative, empirical, policy, and critical perspectives. For each give a precise question, tentative argument, counterargument, method, evidence needed, and scope for a student manuscript. Clearly label hypotheses. Do not invent novelty or claim that no one has studied a topic.',
   research: 'Research the supplied question from multiple perspectives: doctrinal, comparative, empirical, policy, and critical. Use Google Search to retrieve evidence, prefer primary law and academic sources, and link each factual claim to its source. State what each source supports and what it does not. Present disagreements, evidence gaps, and follow-up questions. Do not treat a search snippet as full-text verification. Finish with a source list of URLs.',
   synthesize: 'Build a detailed manuscript outline from the supplied perspectives and research notes. For each section include its argument, supporting source URLs, counterargument, and outstanding verification tasks. Avoid filling gaps with fabricated evidence.',
@@ -117,13 +116,19 @@ export async function handle(req, res) {
   const send = (status, data) => { res.statusCode = status; res.setHeader('Content-Type','application/json'); res.end(JSON.stringify(data)); };
   try {
     const url = new URL(req.url, 'http://localhost');
-    if (req.method === 'GET' && url.pathname === '/api/status') return send(200, { aiConfigured: !!process.env.GEMINI_API_KEY, accessConfigured: !!process.env.WORKSPACE_ACCESS_TOKEN, sources });
+    const origin=req.headers.origin;
+    if((origin&&new URL(origin).host!==req.headers.host)||req.headers['sec-fetch-site']==='cross-site')return send(403,{error:'Open LexRadar directly to use its server session'});
+    if (req.method === 'GET' && url.pathname === '/api/status') return send(200, { aiConfigured: !!process.env.GEMINI_API_KEY, automaticSession:!!(process.env.SESSION_SECRET||process.env.WORKSPACE_ACCESS_TOKEN), sources });
+    if(req.method==='GET'&&url.pathname==='/api/session'){
+      if(!readSession(req.headers.cookie))res.setHeader('Set-Cookie',sessionCookie(issueSession(),req.headers['x-forwarded-proto']==='https'||process.env.VERCEL==='1'));
+      return send(200,{ready:true});
+    }
     if (req.method === 'GET' && url.pathname === '/api/discover') return send(200, await discover(url.searchParams.get('source')));
     if (req.method === 'GET' && url.pathname === '/api/scholarly') { const result=await scholarlySearch(url.searchParams.get('q'),url.searchParams.get('provider')||'openalex');return send(200,{...result,edges:paperEdges(result.works,url.searchParams.get('mode')||'references')}); }
+    if(req.method==='GET'&&url.pathname==='/api/zotero')return send(200,await zoteroLibrary(url.searchParams.get('kind')||'users',url.searchParams.get('id')||'',Number(url.searchParams.get('start')||0)));
     if (req.method !== 'POST' || url.pathname !== '/api/assist') return send(404, { error: 'Endpoint not found' });
-    if (!authorized(req.headers['x-workspace-token'], process.env.WORKSPACE_ACCESS_TOKEN)) return send(401, { error: 'Enter the workspace access code set by the site owner. Your Gemini key must stay on the server.' });
-    const origin = req.headers.origin;
-    if (origin && new URL(origin).host !== req.headers.host) return send(403, { error: 'Cross-origin requests are not allowed' });
+    if (!readSession(req.headers.cookie)) return send(401, { error: 'Your server session expired. Retry to reconnect automatically.' });
+    if(!allowRequest(req)){res.setHeader('Retry-After','60');return send(429,{error:'Research request allowance reached. Wait a minute before retrying; daily usage is also limited.'});}
     let body = req.body;
     if (!body) { let raw = ''; for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 350000) return send(413, { error: 'Request too large' }); } body = JSON.parse(raw); }
     if (typeof body === 'string') body = JSON.parse(body);

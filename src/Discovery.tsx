@@ -1,3 +1,4 @@
+import {apiFetch} from './api';
 import { useEffect, useState } from 'react';
 import { get, set } from 'idb-keyval';
 import { RefreshCw, BookmarkPlus, ExternalLink } from 'lucide-react';
@@ -13,7 +14,7 @@ export default function Discovery({ save }: { save:(call:Call)=>void }) {
   const [query,setQuery]=useState(''),[source,setSource]=useState('all'),[tab,setTab]=useState('calls');
   const [reports,setReports]=useState<Record<string,string>>({});
   const {connected}=useConnection();const [webQuery,setWebQuery]=useState(''),[suggestions,setSuggestions]=useState('');
-  async function searchWeb(){setBusy('google');setError('');try{const response=await fetch('/api/assist',{method:'POST',headers:{'Content-Type':'application/json','x-workspace-token':sessionStorage.getItem('lexradar-access')||''},body:JSON.stringify({action:'calls',text:webQuery})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Search failed');const next=[...data.calls,...calls.filter(c=>!data.calls.some((n:Call)=>n.url===c.url))].slice(0,600);await set('lexradar-discovery',next);setCalls(next);setSuggestions(data.searchSuggestions||'');setSource('all');setTab('calls');}catch(e){setError(e instanceof Error?e.message:'Search failed');}finally{setBusy('');}}
+  async function searchWeb(){setBusy('google');setError('');try{const response=await apiFetch('/api/assist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'calls',text:webQuery})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Search failed');const next=[...data.calls,...calls.filter(c=>!data.calls.some((n:Call)=>n.url===c.url))].slice(0,600);await set('lexradar-discovery',next);setCalls(next);setSuggestions(data.searchSuggestions||'');setSource('all');setTab('calls');}catch(e){setError(e instanceof Error?e.message:'Search failed');}finally{setBusy('');}}
   useEffect(()=>{fetch('/api/status').then(r=>r.json()).then(s=>setSources(s.sources)).catch(()=>setError('Discovery server unavailable. Start the development server or open the deployed site.'));get('lexradar-discovery').then(data=>{if(Array.isArray(data))setCalls(data);else fetch('/discovery-snapshot.json').then(r=>r.json()).then(data=>{if(Array.isArray(data))setCalls(data);}).catch(()=>{});}).catch(()=>setError('Saved discovery results could not be read.'));},[]);
   async function refresh(id:string) {
     setBusy(id);setError('');

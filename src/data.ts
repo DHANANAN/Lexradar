@@ -1,3 +1,4 @@
+import {defaultProfile} from './model';
 import type { State, Venue } from './model';
 
 export const AURA_URL = 'https://aistudio.google.com/apps/d327dd40-48d1-4a7d-8121-221625fd1385?fullscreenApplet=true&showPreview=true&showAssistant=true';
@@ -44,4 +45,4 @@ export const initialVenues: Venue[] = [
   ].map(([id, name, url, institution, subject, type]) => venue(id, name, url, { institution, subject, type: type as Venue['type'], category: institution.includes('NL') || institution === 'NUJS' ? 'NLU journal' : 'Independent', requirements: 'Directory lead. Current call, fees, eligibility and requirements have not been verified. Check the official source before targeting.' }))
 ];
 
-export const initialState: State = { schema: 1, projects: [], venues: initialVenues, tasks: [], settings: { goal: 25, auraUrl: AURA_URL, editorUrl: EDITOR_URL } };
+export const initialState: State = { schema: 1, profile:defaultProfile, projects: [], venues: initialVenues, tasks: [], settings: { goal: 25, auraUrl: AURA_URL, editorUrl: EDITOR_URL } };

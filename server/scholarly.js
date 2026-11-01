@@ -1,4 +1,6 @@
+import {load} from 'cheerio';
 const cache = new Map();
+function reconstructAbstract(index){if(!index||typeof index!=='object')return '';const words=[];for(const[word,positions]of Object.entries(index))for(const position of positions)if(position<1500)words[position]=word;return words.join(' ').slice(0,8000);}
 async function json(url, headers = {}) {
   const response = await fetch(url, { headers: { Accept:'application/json', 'User-Agent':'LexRadar/0.2 scholarly research workbench', ...headers }, signal:AbortSignal.timeout(18000) });
   if (!response.ok) { await response.body?.cancel(); throw new Error(`Scholarly provider returned HTTP ${response.status}`); }
@@ -11,13 +13,19 @@ export function normalizeOpenAlex(work) {
     venue:work.primary_location?.source?.display_name || '', doi:work.doi || '',
     url:work.doi || work.primary_location?.landing_page_url || work.id,
     openUrl:work.open_access?.oa_url || '', citations:work.cited_by_count || 0,
-    references:work.referenced_works || [], provider:'OpenAlex' };
+    references:work.referenced_works || [],abstract:reconstructAbstract(work.abstract_inverted_index),type:work.type||'',isOpenAccess:!!work.open_access?.is_oa, provider:'OpenAlex' };
 }
 export function normalizeCrossref(work) {
   return { id:doiUrl(work.DOI), title:work.title?.[0] || 'Untitled work', year:work.published?.['date-parts']?.[0]?.[0] || null,
     authors:(work.author || []).slice(0,6).map(a=>[a.given,a.family].filter(Boolean).join(' ')),
     venue:work['container-title']?.[0] || '', doi:doiUrl(work.DOI),url:doiUrl(work.DOI),openUrl:'',
-    citations:work['is-referenced-by-count'] || 0,references:(work.reference || []).filter(r=>r.DOI).map(r=>doiUrl(r.DOI)),provider:'Crossref' };
+    citations:work['is-referenced-by-count'] || 0,references:(work.reference || []).filter(r=>r.DOI).map(r=>doiUrl(r.DOI)),abstract:load(work.abstract||'').text().slice(0,8000),type:work.type||'',isOpenAccess:false,provider:'Crossref' };
+}
+export async function zoteroLibrary(kind,id,start=0){
+  if(!['users','groups'].includes(kind)||!/^\d{1,12}$/.test(id))throw new Error('Enter a numeric Zotero user or group library ID');
+  if(!Number.isInteger(start)||start<0||start>5000)throw new Error('Invalid Zotero page');
+  const url=new URL(`https://api.zotero.org/${kind}/${id}/items/top`);url.searchParams.set('format','json');url.searchParams.set('limit','25');url.searchParams.set('start',String(start));
+  const data=await json(url,{'Zotero-API-Version':'3'});return {items:data.filter(i=>!['attachment','note'].includes(i.data?.itemType)).map(i=>({id:i.key,title:i.data.title||'Untitled item',url:i.data.url||(i.data.DOI?doiUrl(i.data.DOI):i.links?.alternate?.href||''),authors:(i.data.creators||[]).map(c=>c.name||[c.firstName,c.lastName].filter(Boolean).join(' ')),year:Number(i.data.date?.match(/\b(19|20)\d{2}\b/)?.[0])||null,venue:i.data.publicationTitle||'',doi:i.data.DOI?doiUrl(i.data.DOI):'',note:i.data.abstractNote||''})),nextStart:data.length===25?start+25:null};
 }
 export async function scholarlySearch(query, provider='openalex', env=process.env) {
   if (typeof query !== 'string' || query.trim().length < 3 || query.length > 250) throw new Error('Enter a topic or DOI between 3 and 250 characters');

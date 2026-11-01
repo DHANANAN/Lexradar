@@ -1,6 +1,6 @@
 # LexRadar
 
-[Live workbench](https://lexradar-two.vercel.app/) ? [Architecture](docs/ARCHITECTURE.md) ? [Sources](docs/SOURCES.md) ? [Roadmap & timeline](docs/ROADMAP.md) ? [Integrations](docs/INTEGRATIONS.md)
+[Live workbench](https://lexradar-two.vercel.app/) | [Architecture](docs/ARCHITECTURE.md) | [Sources](docs/SOURCES.md) | [Roadmap & timeline](docs/ROADMAP.md) | [Integrations](docs/INTEGRATIONS.md)
 
 A research-to-publication workbench for law and social sciences. Find calls, explore a question, gather evidence, develop a first draft, and track its submission history.
 
@@ -19,9 +19,10 @@ A research-to-publication workbench for law and social sciences. Find calls, exp
 - Collapsible navigation on all four edges, light/dark modes, bottom controls, and project tabs.
 - Grounded global call search, permitted announcement fetchers, and a uniform source register.
 - Publisher directory with unknown fees distinct from evidence of zero submission and publication fees.
-- Resumable perspectives ? evidence ? outline ? manuscript pipeline, including stage history and source links.
+- Resumable perspectives -> evidence -> outline -> manuscript pipeline, including stage history and source links.
 - OpenAlex search with Crossref fallback, paper inspector, shared-reference and direct-citation maps.
-- External-tool workspace for AuraPraxis, writing editor, Stanford STORM, Connected Papers and Research-Tool, with direct-open fallbacks.
+- Native AuraPraxis document studio; connected roster includes the writing editor, Undetectable AI, Zotero Web, Stanford STORM, Connected Papers, Consensus and Research-Tool.
+- Local research profile, citation cards, RIS export, public Zotero library reading, and abstract-based evidence synthesis.
 - Project briefs, verification notes, versions, tasks, submission history and publication records.
 - IndexedDB storage and validated JSON backup/restore, including uploaded files and research stages.
 
@@ -36,7 +37,7 @@ npm ci
 npm run dev
 ```
 
-Vite serves the app and API together. Local document tools and public scholarly search work without Gemini. To enable research/writing, set the server variables in [Integrations](docs/INTEGRATIONS.md), restart the server, and enter the workspace code in Connection.
+Vite serves the app and API together. Local document tools and public scholarly search work without Gemini. To enable research/writing, set the server variables in [Integrations](docs/INTEGRATIONS.md), restart the server, The browser connects automatically using an HttpOnly server session.
 
 ```sh
 npm run build
@@ -53,7 +54,7 @@ The repository is connected to Vercel's lexradar project. The client builds into
 
 Data stays in this browser and origin. Clearing site data removes the workspace; export a full backup in Settings. Gemini tasks send the selected brief, source notes and text to Google. External tools receive the text the user chooses to paste. Emails and manuscript submissions are not sent automatically.
 
-The workspace code is a personal access gate. General multi-user AI access requires account ownership and persistent per-user quotas.
+AI access uses automatically issued signed server sessions; there is no code to copy. Per-instance burst/daily guards are best-effort, not a distributed quota system. General multi-user cloud storage still requires account ownership and persistent per-user limits.
 
 ## Attribution
 

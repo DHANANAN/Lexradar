@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseCalls, authorized, generate} from '../server/service.js';
+import {parseCalls, generate} from '../server/service.js';
+import {issueSession,readSession,sessionCookie,allowRequest} from '../server/session.js';
 import {normalizeOpenAlex,normalizeCrossref,paperEdges} from '../server/scholarly.js';
 import {parseGroundedCalls} from '../server/service.js';
 const source={id:'fixture',name:'Fixture provider',url:'https://example.org/feed',format:'rss'};
@@ -8,7 +9,8 @@ test('announcement parser removes markup, deduplicates, rejects unsafe links, an
  const calls=parseCalls('<rss><channel><item><title>Call for papers: Public Law</title><link>https://example.org/call</link><description>&lt;b&gt;Submission invitation&lt;/b&gt;</description></item><item><title>Call for papers: duplicate</title><link>https://example.org/call</link></item><item><title>Call for papers: unsafe</title><link>javascript:alert(1)</link></item><item><title>Football update</title><link>https://example.org/sport</link></item></channel></rss>',source);
  assert.equal(calls.length,1);assert.equal(calls[0].submissionFee,'Unknown');assert.equal(calls[0].publicationFee,'Unknown');assert.equal(calls[0].published,'');assert.ok(!calls[0].summary.includes('<b>'));
 });
-test('paid assistant rejects absent and incorrect access codes',()=>{assert.equal(authorized('',undefined),false);assert.equal(authorized('wrong','correct'),false);assert.equal(authorized('correct','correct'),true);});
+test('automatic sessions reject tampering and expiry and use protected cookies',()=>{const env={SESSION_SECRET:'test-only-signing-secret'},clock=1000;const token=issueSession(env,clock);assert.ok(readSession('lexradar_session='+token,env,clock));assert.equal(readSession('lexradar_session='+token+'changed',env,clock),null);assert.equal(readSession('lexradar_session='+token,env,clock+86400001),null);assert.equal(readSession('',env,clock),null);assert.match(sessionCookie(token,true),/HttpOnly; SameSite=Lax/);assert.match(sessionCookie(token,true),/Secure/);});
+test('server abuse guard bounds a burst without depending on browser session ids',()=>{const req={headers:{'x-vercel-forwarded-for':'test-ip'}};for(let i=0;i<12;i++)assert.equal(allowRequest(req,2000),true);assert.equal(allowRequest(req,2000),false);assert.equal(allowRequest(req,62001),true);});
 test('assistant validates tasks and input before making a provider request',async()=>{await assert.rejects(generate({action:'invalid',text:'test'},{}),/Unknown/);await assert.rejects(generate({action:'draft',text:''},{}),/Enter/);await assert.rejects(generate({action:'draft',text:'A draft'},{}),/not configured/);});
 test('paper map uses actual references, with no invented edges',()=>{const a=normalizeOpenAlex({id:'W1',title:'One',referenced_works:['W3','W4'],authorships:[]});const b=normalizeOpenAlex({id:'W2',title:'Two',referenced_works:['W3']});assert.deepEqual(paperEdges([a,b]),[{source:'W1',target:'W2',weight:1,kind:'shared references'}]);assert.equal(paperEdges([a,b],'direct').length,0);const c=normalizeCrossref({DOI:'10.1000/test',title:['Test'],reference:[{DOI:'10.1000/other'}]});assert.equal(c.references[0],'https://doi.org/10.1000/other');});
 test('global calls require grounding and reject unsafe, duplicated URLs',()=>{assert.throws(()=>parseGroundedCalls('[]',[]),/no grounding/);const calls=parseGroundedCalls(JSON.stringify([{title:'Call for papers',url:'https://example.org/call',summary:'Fees unknown'},{title:'Duplicate',url:'https://example.org/call'},{title:'Unsafe',url:'javascript:alert(1)'}]),[{url:'https://example.org/call'}]);assert.equal(calls.length,1);assert.equal(calls[0].submissionFee,'Unknown');});
