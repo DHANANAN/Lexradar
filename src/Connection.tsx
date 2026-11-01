@@ -1,0 +1,11 @@
+import { useEffect, useState } from 'react';
+export function useConnection() {
+  const [token,setToken]=useState(()=>sessionStorage.getItem('lexradar-access')||'');
+  const [status,setStatus]=useState<{aiConfigured:boolean;accessConfigured:boolean}|null>(null);
+  useEffect(()=>{fetch('/api/status').then(r=>r.json()).then(setStatus).catch(()=>setStatus({aiConfigured:false,accessConfigured:false}));const listener=()=>setToken(sessionStorage.getItem('lexradar-access')||'');window.addEventListener('lexradar-connection',listener);return()=>window.removeEventListener('lexradar-connection',listener);},[]);
+  return {token,status,connected:!!(token&&status?.aiConfigured&&status?.accessConfigured)};
+}
+export default function Connection() {
+  const {token,status}=useConnection();const [value,setValue]=useState(token),[saved,setSaved]=useState(false);
+  return <section className="panel connection-panel"><div className="panel-heading"><h2>Research connection</h2><span className="tag">{status?.aiConfigured?'Gemini configured':'Server setup required'}</span></div><div className="workspace-body"><p>The research studio uses the server’s Gemini connection. Enter your workspace access code to enable research and writing tasks in this tab.</p><form onSubmit={e=>{e.preventDefault();sessionStorage.setItem('lexradar-access',value.trim());window.dispatchEvent(new Event('lexradar-connection'));setSaved(true);}}><label className="field"><span>Workspace access code</span><input type="password" autoComplete="off" value={value} onChange={e=>{setValue(e.target.value);setSaved(false);}}/></label><div className="button-row"><button className="primary">Save access code</button><button type="button" onClick={()=>{setValue('');sessionStorage.removeItem('lexradar-access');window.dispatchEvent(new Event('lexradar-connection'));setSaved(false);}}>Clear access</button></div>{saved&&<p role="status">Access code saved for this tab. It will be checked when you run a task.</p>}</form><p className="caption">Your manuscripts remain in this browser. Running a research or writing task sends the selected project brief, source notes, and text to Google. Public scholarly search works without a Gemini connection.</p></div></section>;
+}

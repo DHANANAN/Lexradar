@@ -23,6 +23,7 @@ export const projectSchema = z.object({
   id: z.string(), title: z.string().min(1), question: z.string(), venueId: z.string(), docType: z.string(),
   citation: z.string(), words: z.string(), notes: text, stage: z.number().int().min(0).max(5), created: timestamp,
   draft: text, versions: z.array(versionSchema), checks: z.array(z.string()),
+  research: z.object({ outputs:z.array(z.object({id:z.string(),action:z.string(),text,created:timestamp,references:z.array(z.object({title:z.string(),url:z.string()})),searchSuggestions:z.string(),incomplete:z.boolean()})) }).default({outputs:[]}),
   sources: z.array(z.object({ id: z.string(), title: z.string(), url: z.string(), note: z.string(), verified: z.boolean() })),
   submissions: z.array(submissionSchema), events: z.array(z.object({ id: z.string(), date: timestamp, label: z.string() }))
 });
@@ -53,7 +54,7 @@ export const checklist = [
 export function newProject(title: string, venue?: Venue): Project {
   return { id: uid(), title, question: '', venueId: venue?.id || '', docType: venue?.type === 'Blog' ? 'Article' : 'Research Paper',
     citation: venue?.citation || 'Bluebook', words: venue?.words || '', notes: '', stage: 0, created: now(), draft: '',
-    versions: [], checks: [], sources: [], submissions: [], events: [{ id: uid(), date: now(), label: 'Research project created' }] };
+    research:{outputs:[]}, versions: [], checks: [], sources: [], submissions: [], events: [{ id: uid(), date: now(), label: 'Research project created' }] };
 }
 export function brief(p: Project, v?: Venue) {
   return `RESEARCH BRIEF\n\nTitle: ${p.title}\nResearch question: ${p.question || 'To be defined'}\nDocument type: ${p.docType}\nTarget: ${v?.name || 'Not selected'}\nWord limit: ${p.words || v?.words || 'To be confirmed'}\nCitations: ${p.citation}\n\nPUBLISHER REQUIREMENTS\n${v?.requirements || 'Check the target publisher guidelines.'}\nEligibility: ${v?.eligibility || 'To be checked'}\nAI policy: ${v?.aiPolicy || 'Check before using AI assistance.'}\nGuidelines: ${v?.source || ''}\n\nRESEARCH NOTES\n${p.notes || 'No notes yet'}\n\nSOURCE REGISTER\n${p.sources.map(s => `${s.title}\n${s.url}\n${s.note}\nChecked: ${s.verified ? 'Yes' : 'No'}`).join('\n\n') || 'Add primary and secondary sources.'}\n\nTASK\nHelp develop a focused research outline and identify evidence gaps within the publisher policy above. Preserve the author’s argument. Do not invent cases, quotations, citations, or findings. Mark unsupported claims for verification. Distinguish source material from interpretation. Do not add author identity to an anonymous manuscript.`;

@@ -1,65 +1,64 @@
 # LexRadar
 
-A compact research-to-publication workbench. Browse publishers, develop a research brief, continue in AuraPraxis, save manuscript versions, and track submissions to publication.
+[Live workbench](https://lexradar-two.vercel.app/) ? [Architecture](docs/ARCHITECTURE.md) ? [Sources](docs/SOURCES.md) ? [Roadmap & timeline](docs/ROADMAP.md) ? [Integrations](docs/INTEGRATIONS.md)
 
-## Run
-
-Requires Node.js 22.12+ (tested with Node 24).
-
-```sh
-npm install
-npm run dev
-```
-
-Open the local address printed by Vite. Production build:
-
-```sh
-npm run build
-npm run preview
-```
-
-The `dist/` directory can be served by a static host. Its relative asset paths support deployment under a repository subpath. No account, API key, or backend is required for this version.
+A research-to-publication workbench for law and social sciences. Find calls, explore a question, gather evidence, develop a first draft, and track its submission history.
 
 ## Workflow
 
-1. Create a project or start one from a publisher record.
-2. Define the question, document type, target, citation style, and research scope.
-3. Keep a source register with verification notes.
-4. Copy the brief and open the linked AuraPraxis app; paste it into the app and choose the matching research category. External tools have their own sign-in and processing requirements.
-5. Paste returned text or upload a DOC/DOCX, PDF, TXT, or Markdown file (up to 10 MB). Save named versions. Word/PDF files are preserved intact, not parsed or formatted by LexRadar.
-6. Review the publisher requirements and complete the preparation checklist.
-7. Copy a cover-letter template, open the publisher's submission route, and submit there. Log the exact manuscript version afterward.
-8. Record editorial decisions and revisions. A published status requires a publication URL.
+1. **Discover:** fetch announcements or search global calls with Gemini Google Search. Save leads to the publisher index.
+2. **Choose a target:** verify eligibility, both fees, deadline, word limit, and original requirements.
+3. **Explore:** brainstorm questions, methods, and competing perspectives in the research lab.
+4. **Research:** search OpenAlex/Crossref, explore reference connections, and maintain a source register. Gather grounded web evidence in the lab.
+5. **Draft:** develop an outline and first draft or use the writing studio. Accept text explicitly and preserve previous versions.
+6. **Revise:** use natural-language revision, readiness checks, and source verification. Import DOCX text or preserve an original file; export Word or text.
+7. **Submit and track:** prepare an exact version, submit through the publisher's route, and record editorial decisions and the published URL.
 
-The project tree connects saved versions to submission attempts. The dashboard counts submission attempts, review stages, and published records separately. Opening a tool or publisher link never marks a submission as sent.
+## Capabilities
 
-## Storage and backups
+- Collapsible navigation on all four edges, light/dark modes, bottom controls, and project tabs.
+- Grounded global call search, permitted announcement fetchers, and a uniform source register.
+- Publisher directory with unknown fees distinct from evidence of zero submission and publication fees.
+- Resumable perspectives ? evidence ? outline ? manuscript pipeline, including stage history and source links.
+- OpenAlex search with Crossref fallback, paper inspector, shared-reference and direct-citation maps.
+- External-tool workspace for AuraPraxis, writing editor, Stanford STORM, Connected Papers and Research-Tool, with direct-open fallbacks.
+- Project briefs, verification notes, versions, tasks, submission history and publication records.
+- IndexedDB storage and validated JSON backup/restore, including uploaded files and research stages.
 
-IndexedDB stores projects, attachments, sources, tasks, and directory edits in this browser and origin. It is not cloud storage or a cross-device account. Clearing browser site data removes this workspace. Use **Settings → Export full backup** to keep a complete JSON backup including uploaded files. Restore validates the backup and asks before replacing existing records.
+This release is a personal workbench with public discovery, not exhaustive global coverage or a multi-user cloud service. Reference-only sources are labelled. Scholarly indexes describe published works, not proof of open calls. [The roadmap](docs/ROADMAP.md) identifies the remaining shared database, scheduled refresh, account and coverage work.
 
-External tools receive no manuscript data automatically. The user chooses what to copy and paste. LexRadar does not collect Google credentials, store API keys, send emails, or claim automatic synchronization with AuraPraxis.
+## Development
 
-## Publisher directory
-
-There are 22 starter records, with official sources reviewed on 1 November 2026 for 12 records. Other records are explicitly unverified leads carried forward or added for coverage. Six NLSIU repository journals have a university source for zero submission/publication fees; expired calls remain expired. Fees absent from guidelines remain **Unknown**, not inferred free from open access. Zero-fee filtering excludes unconfirmed fees.
-
-This release provides manual source verification and record editing, not continuous scraping. A checked date records the last review, not a guarantee that a call is still open. Deadline-only calls need their closing time and timezone confirmed with the publisher. Review timelines are source statements, not publication promises. Country, subject, format, and institution are displayed; filters support subject, format, fee status, expiry, and search by publisher/institution.
-
-The launch directory is a starting point, not complete coverage of Indian journals. Cloud sync, an automated source monitor, and deeper tool integration are future extensions. The first version deliberately uses React + TypeScript + Vite and IndexedDB instead of a server/database deployment.
-
-## Validation
+Node.js 22.12+; tested with Node 24.
 
 ```sh
-npx playwright install chromium
+npm ci
+npm run dev
+```
+
+Vite serves the app and API together. Local document tools and public scholarly search work without Gemini. To enable research/writing, set the server variables in [Integrations](docs/INTEGRATIONS.md), restart the server, and enter the workspace code in Connection.
+
+```sh
+npm run build
 npm test
 ```
 
-Tests cover the complete research/submission workflow, exact-version history, attachment backup/restore, fee and expiry filters, escaped user text, mobile overflow, draft retention, and invalid backup rejection. Tests use isolated browser storage and do not submit documents to publishers.
+Tests include Node unit checks and Playwright browser workflows. Install Chromium once with `npx playwright install chromium`. `npm run preview` serves the client only; use Vite development or Vercel for API routes.
 
-## Design and related projects
+## Deployment
 
-- Design process adapted from **Unslop**, by Damir Sokolovsky (@heydamir), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): https://github.com/heydamir/unslop. Adaptation: a restrained, table-oriented academic workbench; compact corners and conventional controls follow the requested 2015–16 direction.
-- [AuraPraxis](https://github.com/DHANANAN/AuraPraxis) informed the research document types, citation choices, and version workflow. It remains a separately hosted tool; its AI services are not duplicated here.
-- The writing editor link is the user-supplied https://www.sthealthwriter.in/. Linking is not a security audit or endorsement of detection claims.
+The repository is connected to Vercel's lexradar project. The client builds into dist/; api/[...path].js provides the Node API. Configure server variables, deploy the reviewed commit, then verify status, discovery, scholarly search, and a protected assistant request. Status reveals configuration booleans only.
 
-The original single-file prototype remains at its original path for reference. It is not part of the Vite production build. Only the new workbench is included in `dist/`.
+## Storage
+
+Data stays in this browser and origin. Clearing site data removes the workspace; export a full backup in Settings. Gemini tasks send the selected brief, source notes and text to Google. External tools receive the text the user chooses to paste. Emails and manuscript submissions are not sent automatically.
+
+The workspace code is a personal access gate. General multi-user AI access requires account ownership and persistent per-user quotas.
+
+## Attribution
+
+Design process adapted from **Unslop**, by Damir Sokolovsky (@heydamir), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), with credit to [the original skill](https://github.com/heydamir/unslop). This adaptation uses compact academic navigation and the requested ivory/bronze and obsidian/gold palette.
+
+[AuraPraxis](https://github.com/DHANANAN/AuraPraxis) informed document types and the writing workflow. [Stanford STORM](https://github.com/stanford-oval/storm) informed the research stages. The native map uses public OpenAlex/Crossref metadata. See [Integrations](docs/INTEGRATIONS.md) for reviewed open-source alternatives and licenses. No affiliation or identical implementation of external services is claimed.
+
+The original single-file prototype remains in the repository for historical reference and is excluded from the app build.

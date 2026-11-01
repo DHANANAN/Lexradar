@@ -1,10 +1,17 @@
 export const sources = [
+  { id:'openalex',name:'OpenAlex',kind:'Scholarly API',url:'https://openalex.org/',format:'api',coverage:'Global scholarly works and reference relationships · Literature tab' },
+  { id:'crossref',name:'Crossref',kind:'Scholarly API',url:'https://www.crossref.org/',format:'api',coverage:'DOI metadata, journals, publishers and reference lists · Literature tab' },
   { id: 'lawctopus', name: 'Lawctopus', kind: 'Aggregator', url: 'https://www.lawctopus.com/category/opportunities-events/call-for-papers/feed/', format: 'rss', coverage: 'Indian law journals, blogs, conferences' },
   { id: 'livelaw', name: 'LiveLaw', kind: 'Legal news', url: 'https://www.livelaw.in/lawschool/call-for-papers', format: 'html', coverage: 'Law school calls for papers' },
   { id: 'barbench', name: 'Bar & Bench', kind: 'Legal news', url: 'https://www.barandbench.com/Law-School', format: 'html', coverage: 'Law school announcements' },
   { id: 'nls', name: 'NLSIU repository', kind: 'University', url: 'https://repository.nls.ac.in/', format: 'reference', coverage: 'University journals and official requirements' },
   { id: 'epw', name: 'Economic & Political Weekly', kind: 'Journal', url: 'https://www.epw.in/', format: 'reference', coverage: 'Social sciences and public policy' },
   { id: 'icssr', name: 'ICSSR', kind: 'Research council', url: 'https://icssr.org/', format: 'reference', coverage: 'Social science research announcements' },
+  { id:'ugc',name:'UGC — journal selection guidance',kind:'Government reference',url:'https://www.ugc.gov.in/',format:'reference',coverage:'Peer-review selection guidance; UGC-CARE discontinued in 2025' },
+  { id:'indiacode',name:'India Code',kind:'Government reference',url:'https://www.indiacode.nic.in/',format:'reference',coverage:'Central and state legislation for primary-source research' },
+  { id:'dataindia',name:'Open Government Data India',kind:'Government data',url:'https://www.data.gov.in/',format:'reference',coverage:'Government datasets; API access requires a separate data.gov.in key' },
+  { id:'shodhganga',name:'Shodhganga / INFLIBNET',kind:'Research repository',url:'https://shodhganga.inflibnet.ac.in/',format:'reference',coverage:'Indian theses and research literature' },
+  { id:'doaj',name:'Directory of Open Access Journals',kind:'Journal directory',url:'https://doaj.org/',format:'reference',coverage:'International open-access journal discovery; verify fees and submission status' },
   { id: 'ssrn', name: 'SSRN', kind: 'Research network', url: 'https://www.ssrn.com/', format: 'reference', coverage: 'Research networks and conference leads' },
   { id: 'linkedin', name: 'LinkedIn public announcements', kind: 'Public search', url: 'https://www.linkedin.com/', format: 'search', coverage: 'Publicly indexed posts; no signed-in scraping' },
 ];
